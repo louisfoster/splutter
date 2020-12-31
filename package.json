@@ -1,11 +1,11 @@
 {
 	"name": "splutter",
-	"version": "0.3.1",
+	"version": "0.4.0",
 	"description": "record audio in compressed segments and stream them to a 'sludge' server",
 	"main": "build/splutter.js",
 	"scripts": {
 		"start": "npm run snowpack:dev",
-		"build": "npm run snowpack:build && npm run copy:worker",
+		"build": "npm run snowpack:build",
 		"copy:worker": "cp modules/opus-recorder/dist/encoderWorker.min.js build/",
 		"snowpack:dev": "snowpack dev",
 		"snowpack:build": "snowpack build",
@@ -29,6 +29,9 @@
 	},
 	"homepage": "https://github.com/gaxge/splutter",
 	"types": "build/splutter.d.ts",
+	"files": [
+		"build/"
+	],
 	"license": "MIT",
 	"devDependencies": {
 		"@snowpack/plugin-run-script": "^2.1.0",
