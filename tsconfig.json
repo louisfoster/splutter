@@ -35,11 +35,10 @@
 	},
 	"include": [
 		"src",
-		"typings"	
+		"typings"
 	],
 	"exclude": [
 		"node_modules",
-		"modules",
 		"example/server"
 	]
 }

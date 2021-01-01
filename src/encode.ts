@@ -1,4 +1,5 @@
 import type { SegmentBuffer, SegmentHandler } from "./segmentBufferGenerator"
+import worker from "worker!/opus-recorder/dist/encoder/encoderWorker.min.js"
 
 export interface EncodedBuffer
 {
@@ -96,7 +97,7 @@ export class Encoder implements SegmentHandler
 
 		this.encoding = -1
 
-		this.encodeWorker = new Worker( new URL( `encoder/encoderWorker.min.js`, import.meta.url ), {
+		this.encodeWorker = new Worker( this.createWorkerScriptBlob( worker ), {
 			name: `encode-worker`,
 			type: `module`,
 		} )
@@ -110,6 +111,13 @@ export class Encoder implements SegmentHandler
 		this.encodeWorker.onerror = this.onEncoderError
 
 		this.runEncoder = this.runEncoder.bind( this )
+	}
+
+	private createWorkerScriptBlob( script: string ): URL
+	{
+		const blob = new Blob( [ script ], { type: `text/javascript` } )
+
+		return new URL( URL.createObjectURL( blob ), import.meta.url )
 	}
 
 	private createBuffer( channel: number ): EncoderSegmentBuffer

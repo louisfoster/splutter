@@ -1,10 +1,10 @@
-import { Splutter, SplutterContextInterface, OnUploadedData } from "../build/splutter.js"
+import type { Splutter, SplutterContextInterface, OnUploadedData } from "../build/splutter.js"
 
 class App implements SplutterContextInterface
 {
 	public handlePostUpload: boolean
 
-	private splutter: Splutter
+	private splutter?: Splutter
 
 	private urls: URL[][]
 
@@ -19,9 +19,11 @@ class App implements SplutterContextInterface
 
 	constructor()
 	{
-		this.splutter = new Splutter( this )
-
 		this.urls = []
+
+		this._startCapture = this._startCapture.bind( this )
+
+		this._getDeviceInfo = this._getDeviceInfo.bind( this )
 
 		this.handleStartCapture = this.handleStartCapture.bind( this )
 
@@ -102,6 +104,11 @@ class App implements SplutterContextInterface
 
 		channelButton.addEventListener( `click`, () =>
 		{
+			if ( !this.splutter )
+			{
+				throw Error( `Splutter library failed to load.` )
+			}
+
 			if ( channelButton.dataset.state === `inactive` )
 			{
 				this.splutter.recordInputChannel( channel )
@@ -133,6 +140,11 @@ class App implements SplutterContextInterface
 
 		outputButton.addEventListener( `click`, () =>
 		{
+			if ( !this.splutter )
+			{
+				throw Error( `Splutter library failed to load.` )
+			}
+
 			if ( outputButton.dataset.state === `inactive` )
 			{
 				this.splutter.unmuteOutputChannelForInputChannel( inputChannel, outputChannel )
@@ -154,35 +166,69 @@ class App implements SplutterContextInterface
 		return outputButton
 	}
 
+	private _getDeviceInfo()
+	{
+		if ( !this.splutter )
+		{
+			throw Error( `Splutter library failed to load.` )
+		}
+
+		const { id, outputChannels, inputChannels, label } = this.splutter.inputDeviceInformation()
+
+		this.info.textContent = `Device ID: ${id}\nDevice label: ${label}`
+
+		for ( let i = 0; i < inputChannels; i++ )
+		{
+			const ch = this.div()
+
+			ch.appendChild( this.createRecord( i ) )
+
+			for ( let o = 0; o < outputChannels; o++ )
+			{
+				ch.appendChild( this.createOutput( i, o ) )
+			}
+
+			this.urls[ i ] = [ new URL( `/uploadAudio`, window.location.origin ) ]
+
+			this.channels.appendChild( ch )
+		}
+	}
+
+	private _startCapture()
+	{
+		if ( !this.splutter )
+		{
+			throw Error( `Splutter library failed to load.` )
+		}
+
+		this.splutter.startCapture()
+			.then( this._getDeviceInfo )
+	}
+
 	private handleStartCapture()
 	{
-		this.splutter.startCapture()
-			.then( () =>
+		if ( !this.splutter )
+		{
+			import( `../build/splutter.js` ).then( ( { Splutter } ) =>
 			{
-				const { id, outputChannels, inputChannels, label } = this.splutter.inputDeviceInformation()
+				this.splutter = new Splutter( this )
 
-				this.info.textContent = `Device ID: ${id}\nDevice label: ${label}`
-
-				for ( let i = 0; i < inputChannels; i++ )
-				{
-					const ch = this.div()
-
-					ch.appendChild( this.createRecord( i ) )
-
-					for ( let o = 0; o < outputChannels; o++ )
-					{
-						ch.appendChild( this.createOutput( i, o ) )
-					}
-
-					this.urls[ i ] = [ new URL( `/uploadAudio`, window.location.origin ) ]
-
-					this.channels.appendChild( ch )
-				}
+				this._startCapture()
 			} )
+		}
+		else
+		{
+			this._startCapture()
+		}
 	}
 
 	private handleStopCapture()
 	{
+		if ( !this.splutter )
+		{
+			throw Error( `Splutter library failed to load.` )
+		}
+
 		this.splutter.stopCapture()
 
 		this.channels.innerHTML = ``

@@ -1,7 +1,6 @@
 {
 	"mount": {
-		"src": "/",
-		"modules/opus-recorder/dist/encoder": "/encoder"
+		"src": "/"
 	},
 	"buildOptions": {
 		"installTypes": true
@@ -13,7 +12,8 @@
 				"cmd": "tsc --build tsconfig.json",
 				"watch": "$1 --watch"
 			}
-		]
+		],
+		["./plugin.js", { "file": "encoder/encoderWorker.min.js" }]
 	],
 	"installOptions": {
 		"sourceMap": true
@@ -27,6 +27,10 @@
 		}
 	},
 	"exclude": [
-		"example"
-	]
+		"example",
+		"src/modules/**/!(encoderWorker.min.js)"
+	],
+	"alias": {
+		"worker!": "./src/modules"
+	}
 }

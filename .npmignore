@@ -10,3 +10,4 @@ example
 snowpack.config.json
 tsconfig.json
 typings
+plugin.js

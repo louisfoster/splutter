@@ -42,16 +42,6 @@ After setting up your project using NPM, install this library:
 npm install --save splutter
 ```
 
-You will also need to set up your app/server/bundler to allow access to the worker script. The file is:
-
-```shell
-node_modules/splutter/build/encoder/encoderWorker.min.js
-```
-
-It should be on the same path as this code, so if you're loading `https://example.com/app.bundle.js` as your bundle including this library, you'll want to have the file available at `https://example.com/encoder/encoderWorker.min.js` as well.
-
-**NOTE** How this file is accessed will likely vary based on the environment and tools you are using, so if you are unsure, there is likely an answer if you search for it. Otherwise, post the question as an issue so it can be addressed.
-
 You can then use it in your project by importing it:
 
 ```ts

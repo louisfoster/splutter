@@ -24,11 +24,18 @@
       "bytes": 73,
       "imports": []
     },
+    "modules/opus-recorder/dist/encoder/encoderWorker.min.js": {
+      "bytes": 339786,
+      "imports": []
+    },
     "encode.js": {
-      "bytes": 4782,
+      "bytes": 5008,
       "imports": [
         {
           "path": "__snowpack__/env.js"
+        },
+        {
+          "path": "modules/opus-recorder/dist/encoder/encoderWorker.min.js"
         }
       ]
     },
@@ -84,10 +91,13 @@
           "bytesInOutput": 1660
         },
         "__snowpack__/env.js": {
-          "bytesInOutput": 51
+          "bytesInOutput": 50
+        },
+        "modules/opus-recorder/dist/encoder/encoderWorker.min.js": {
+          "bytesInOutput": 339299
         },
         "encode.js": {
-          "bytesInOutput": 3125
+          "bytesInOutput": 3226
         },
         "segmentBufferGenerator.js": {
           "bytesInOutput": 2658
@@ -99,7 +109,7 @@
           "bytesInOutput": 2055
         }
       },
-      "bytes": 16736
+      "bytes": 356136
     }
   }
 }

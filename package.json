@@ -1,14 +1,14 @@
 {
 	"name": "splutter",
-	"version": "0.4.0",
+	"version": "0.4.1",
 	"description": "record audio in compressed segments and stream them to a 'sludge' server",
 	"main": "build/splutter.js",
 	"scripts": {
 		"start": "npm run snowpack:dev",
-		"build": "npm run snowpack:build",
-		"copy:worker": "cp modules/opus-recorder/dist/encoderWorker.min.js build/",
+		"build": "npm run snowpack:build && npm run remove:modules",
 		"snowpack:dev": "snowpack dev",
 		"snowpack:build": "snowpack build",
+		"remove:modules": "rm -rf build/modules",
 		"lint": "eslint . --ext .js,.ts",
 		"lint:fix": "eslint . --ext .js,.ts --fix",
 		"example:build": "tsc --build example/tsconfig.json",

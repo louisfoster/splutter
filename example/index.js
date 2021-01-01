@@ -1,4 +1,3 @@
-import { Splutter } from "../build/splutter.js";
 class App {
     handlePostUpload;
     splutter;
@@ -9,8 +8,9 @@ class App {
         new App();
     }
     constructor() {
-        this.splutter = new Splutter(this);
         this.urls = [];
+        this._startCapture = this._startCapture.bind(this);
+        this._getDeviceInfo = this._getDeviceInfo.bind(this);
         this.handleStartCapture = this.handleStartCapture.bind(this);
         this.handleStopCapture = this.handleStopCapture.bind(this);
         const [channels, info] = this.setUI();
@@ -56,6 +56,9 @@ class App {
         channelButton.dataset.state = `inactive`;
         channelButton.textContent = `Record ${channel}`;
         channelButton.addEventListener(`click`, () => {
+            if (!this.splutter) {
+                throw Error(`Splutter library failed to load.`);
+            }
             if (channelButton.dataset.state === `inactive`) {
                 this.splutter.recordInputChannel(channel);
                 channelButton.dataset.state = `active`;
@@ -74,8 +77,11 @@ class App {
         outputButton.dataset.state = `inactive`;
         outputButton.textContent = `Listen on ${outputChannel}`;
         outputButton.addEventListener(`click`, () => {
+            if (!this.splutter) {
+                throw Error(`Splutter library failed to load.`);
+            }
             if (outputButton.dataset.state === `inactive`) {
-                this.splutter.unmuteOutputChannelForInputInput(inputChannel, outputChannel);
+                this.splutter.unmuteOutputChannelForInputChannel(inputChannel, outputChannel);
                 outputButton.dataset.state = `active`;
                 outputButton.textContent = `Mute on ${outputChannel}`;
             }
@@ -87,29 +93,47 @@ class App {
         });
         return outputButton;
     }
-    handleStartCapture() {
-        this.splutter.startCapture()
-            .then(() => {
-            const { id, outputChannels, inputChannels, label } = this.splutter.inputDeviceInformation();
-            this.info.textContent = `Device ID: ${id}\nDevice label: ${label}`;
-            for (let i = 0; i < inputChannels; i++) {
-                const ch = this.div();
-                ch.appendChild(this.createRecord(i));
-                for (let o = 0; o < outputChannels; o++) {
-                    ch.appendChild(this.createOutput(i, o));
-                }
-                this.urls[i] = [new URL(`/uploadAudio`, window.location.origin)];
-                this.channels.appendChild(ch);
+    _getDeviceInfo() {
+        if (!this.splutter) {
+            throw Error(`Splutter library failed to load.`);
+        }
+        const { id, outputChannels, inputChannels, label } = this.splutter.inputDeviceInformation();
+        this.info.textContent = `Device ID: ${id}\nDevice label: ${label}`;
+        for (let i = 0; i < inputChannels; i++) {
+            const ch = this.div();
+            ch.appendChild(this.createRecord(i));
+            for (let o = 0; o < outputChannels; o++) {
+                ch.appendChild(this.createOutput(i, o));
             }
-        });
+            this.urls[i] = [new URL(`/uploadAudio`, window.location.origin)];
+            this.channels.appendChild(ch);
+        }
+    }
+    _startCapture() {
+        if (!this.splutter) {
+            throw Error(`Splutter library failed to load.`);
+        }
+        this.splutter.startCapture()
+            .then(this._getDeviceInfo);
+    }
+    handleStartCapture() {
+        if (!this.splutter) {
+            import(`../build/splutter.js`).then(({ Splutter }) => {
+                this.splutter = new Splutter(this);
+                this._startCapture();
+            });
+        }
+        else {
+            this._startCapture();
+        }
     }
     handleStopCapture() {
+        if (!this.splutter) {
+            throw Error(`Splutter library failed to load.`);
+        }
         this.splutter.stopCapture();
         this.channels.innerHTML = ``;
         this.info.textContent = ``;
-    }
-    preloadData() {
-        // returns data from storage, not implemented
     }
     onWarning(message) {
         console.warn(message);
@@ -125,3 +149,4 @@ class App {
     }
 }
 App.init();
+export {};

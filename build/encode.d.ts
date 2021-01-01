@@ -54,6 +54,7 @@ export declare class Encoder implements SegmentHandler {
      * @param channelIdList Audio input device channel ids
      */
     constructor(encodedHandler: EncodedHandler, fail: EncoderErrorHandler, sampleRate: number);
+    private createWorkerScriptBlob;
     private createBuffer;
     private initWorker;
     /**
