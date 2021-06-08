@@ -1,5 +1,6 @@
 import { Audio } from "./audio"
 import { BufferManager } from "./bufferManager"
+import type { ChannelStateChangeListener } from "./channel"
 import { Device, DeviceWarningHandler, DeviceError } from "./device"
 import { Encoder, EncoderErrorHandler } from "./encode"
 import { SegmentBufferGenerator, SegmentBufferGeneratorErrorHandler } from "./segmentBufferGenerator"
@@ -13,7 +14,8 @@ extends
 	ChannelUploadStore, 
 	InternalPostUploadHandler,
 	EncoderErrorHandler,
-	UploaderErrorHandler
+	UploaderErrorHandler,
+	ChannelStateChangeListener
 {
 	onWarning: ( message: string | Error | ErrorEvent ) => void
 
@@ -54,7 +56,7 @@ implements
 
 		this.bufferManager = new BufferManager()
 
-		this.audio = new Audio( this.bufferManager )
+		this.audio = new Audio( this.bufferManager, this.context )
 
 		this.uploader = new Uploader( this.context, this.context, this.context, 3000 )
 

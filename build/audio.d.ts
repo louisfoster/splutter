@@ -1,8 +1,10 @@
+import { ChannelStateChangeListener } from "./channel";
 export interface AudioBufferChunkHandler {
     onChunk: (chunk: Float32Array, channelIndex: number) => void;
 }
 export declare class Audio {
     private processor;
+    private channelStateListener;
     private context;
     private source?;
     private splitter?;
@@ -10,7 +12,7 @@ export declare class Audio {
     private bufferSize;
     private channels;
     private connections;
-    constructor(processor: AudioBufferChunkHandler);
+    constructor(processor: AudioBufferChunkHandler, channelStateListener: ChannelStateChangeListener);
     private setDestinationChannels;
     private disconnectSplitter;
     stopRecordChannel(channel: number): void;

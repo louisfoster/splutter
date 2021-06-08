@@ -38,7 +38,6 @@ app.use(express.static('example'))
 
 app.use('/build', express.static('build'))
 
-// It`s very crucial that the file name matches the name attribute in your html
 app.post( `/uploadAudio`, upload.single( `audio` ), ( req, res ) => 
 {
 	res.json("success")

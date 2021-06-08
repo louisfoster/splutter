@@ -1,4 +1,4 @@
-import { Channel } from "./channel"
+import { Channel, ChannelStateChangeListener } from "./channel"
 
 export interface AudioBufferChunkHandler
 {
@@ -28,7 +28,8 @@ export class Audio
 	private connections: ConnectionState[][]
 
 	constructor(
-		private processor: AudioBufferChunkHandler
+		private processor: AudioBufferChunkHandler,
+		private channelStateListener: ChannelStateChangeListener
 	)
 	{
 		const _AudioContext: typeof AudioContext = window.AudioContext || window.webkitAudioContext
@@ -224,7 +225,8 @@ export class Audio
 			if ( !this.channels[ channelIndex ] )
 			{
 				this.channels[ channelIndex ] = new Channel(
-					channelIndex, 
+					channelIndex,
+					this.channelStateListener,
 					this.processor.onChunk, 
 					this.context, 
 					this.bufferSize )

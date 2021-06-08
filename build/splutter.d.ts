@@ -1,9 +1,10 @@
+import type { ChannelStateChangeListener } from "./channel";
 import { DeviceWarningHandler } from "./device";
 import { EncoderErrorHandler } from "./encode";
 import { SegmentBufferGeneratorErrorHandler } from "./segmentBufferGenerator";
 import { ChannelUploadStore, InternalPostUploadHandler, UploaderErrorHandler } from "./upload";
 export type { OnUploadedData } from './upload';
-export interface SplutterContextInterface extends DeviceWarningHandler, ChannelUploadStore, InternalPostUploadHandler, EncoderErrorHandler, UploaderErrorHandler {
+export interface SplutterContextInterface extends DeviceWarningHandler, ChannelUploadStore, InternalPostUploadHandler, EncoderErrorHandler, UploaderErrorHandler, ChannelStateChangeListener {
     onWarning: (message: string | Error | ErrorEvent) => void;
     onFailure: (error: Error) => void;
 }

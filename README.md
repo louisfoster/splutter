@@ -1,5 +1,7 @@
 # splutter
 
+![Designs showing the lower half of the face in various physiognomies and actions.](https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Designs_showing_the_lower_half_of_the_face_in_various_physio_Wellcome_V0009408.jpg/302px-Designs_showing_the_lower_half_of_the_face_in_various_physio_Wellcome_V0009408.jpg)
+
 Record audio in compressed segments and stream them to a [sludge server](https://github.com/gaxge/sludge).
 
 ## Demo

@@ -7,6 +7,11 @@ export enum ChannelState
 	outputtingAndRecording
 }
 
+export interface ChannelStateChangeListener
+{
+	onChannelStateChange?: ( channel: number, state: ChannelState ) => void
+}
+
 export class Channel
 {
 	public input: BiquadFilterNode
@@ -23,6 +28,7 @@ export class Channel
 
 	constructor(
 		public index: number,
+		private stateListener: ChannelStateChangeListener,
 		private onChunk: ( chunk: Float32Array, channelIndex: number ) => void,
 		context: AudioContext,
 		bufferSize: number
@@ -65,6 +71,14 @@ export class Channel
 		]
 	}
 
+	private setState( state: ChannelState )
+	{
+		this.state = state
+
+		if ( this.stateListener.onChannelStateChange )
+			this.stateListener.onChannelStateChange( this.index, this.state )
+	}
+
 	private processChunk( event: AudioProcessingEvent )
 	{
 		/**
@@ -87,36 +101,36 @@ export class Channel
 	{
 		if ( this.state === ChannelState.connecting ) return
 
-		this.state = this.state === ChannelState.recording
+		this.setState( this.state = this.state === ChannelState.recording
 			? ChannelState.outputtingAndRecording
-			: ChannelState.outputting
+			: ChannelState.outputting )
 	}
 
 	public mute(): void
 	{
 		if ( this.state === ChannelState.connecting ) return
 
-		this.state = this.state === ChannelState.outputtingAndRecording
+		this.setState( this.state === ChannelState.outputtingAndRecording
 			? ChannelState.recording
-			: ChannelState.connected
+			: ChannelState.connected )
 	}
 
 	public record(): void
 	{
 		if ( this.state === ChannelState.connecting ) return
 
-		this.state = this.state === ChannelState.outputting
+		this.setState( this.state === ChannelState.outputting
 			? ChannelState.outputtingAndRecording
-			: ChannelState.recording
+			: ChannelState.recording )
 	}
 
 	public stop(): void
 	{
 		if ( this.state === ChannelState.connecting ) return
 
-		this.state = this.state === ChannelState.outputtingAndRecording
+		this.setState( this.state === ChannelState.outputtingAndRecording
 			? ChannelState.outputting
-			: ChannelState.connected
+			: ChannelState.connected )
 	}
 
 	public isMuted(): boolean
