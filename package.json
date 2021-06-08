@@ -22,12 +22,12 @@
 	},
 	"bugs": {
 		"email": "email@drohen.com",
-		"url": "https://github.com/gaxge/splutter/issues"
+		"url": "https://github.com/drohen/splutter/issues"
 	},
 	"repository": {
-		"url": "https://github.com/gaxge/splutter.git"
+		"url": "https://github.com/drohen/splutter.git"
 	},
-	"homepage": "https://github.com/gaxge/splutter",
+	"homepage": "https://github.com/drohen/splutter",
 	"types": "build/splutter.d.ts",
 	"files": [
 		"build/"
