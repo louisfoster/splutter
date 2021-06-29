@@ -18,7 +18,7 @@ export declare class Splutter implements SegmentBufferGeneratorErrorHandler {
     private context;
     private device;
     private audio;
-    private encoder;
+    private encoder?;
     private uploader;
     private bufferManager;
     /**
@@ -27,6 +27,7 @@ export declare class Splutter implements SegmentBufferGeneratorErrorHandler {
      */
     constructor(context: SplutterContextInterface);
     private createBuffers;
+    init(): void;
     startCapture(): Promise<void>;
     stopCapture(): void;
     muteOutputChannelForInputChannel(input: number, output: number): void;

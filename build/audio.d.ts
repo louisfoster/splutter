@@ -5,10 +5,10 @@ export interface AudioBufferChunkHandler {
 export declare class Audio {
     private processor;
     private channelStateListener;
-    private context;
+    private context?;
     private source?;
     private splitter?;
-    private merger;
+    private merger?;
     private bufferSize;
     private channels;
     private connections;

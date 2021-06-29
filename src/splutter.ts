@@ -38,7 +38,7 @@ implements
 
 	private audio: Audio
 
-	private encoder: Encoder
+	private encoder?: Encoder
 
 	private uploader: Uploader
 
@@ -60,8 +60,6 @@ implements
 
 		this.uploader = new Uploader( this.context, this.context, this.context, 3000 )
 
-		this.encoder = new Encoder( this.uploader, this.context, this.audio.sampleRate() )
-
 		this.createBuffers = this.createBuffers.bind( this )
 
 		this.startCapture = this.startCapture.bind( this )
@@ -69,6 +67,8 @@ implements
 		this.stopCapture = this.stopCapture.bind( this )
 
 		this.inputDeviceInformation = this.inputDeviceInformation.bind( this )
+
+		this.init = this.init.bind( this )
 	}
 
 	private createBuffers( channels: number )
@@ -77,7 +77,7 @@ implements
 		{
 			// get id for channel from device?
 
-			if ( !this.bufferManager.bufferExists( i ) )
+			if ( !this.bufferManager.bufferExists( i ) && this.encoder )
 			{
 				this.bufferManager.setBuffer(
 					new SegmentBufferGenerator(
@@ -92,14 +92,22 @@ implements
 			}
 		}
 
-		this.encoder.setChannels( channels )
+		this.encoder?.setChannels( channels )
 
 		this.uploader.setChannels( channels )
 	}
 
-	public async startCapture(): Promise<void> 
+	public init(): void
 	{
 		this.audio.resume()
+
+		if ( !this.encoder )
+			this.encoder = new Encoder( this.uploader, this.context, this.audio.sampleRate() )
+	}
+
+	public async startCapture(): Promise<void> 
+	{
+		this.init()
 
 		switch ( this.device.hasError() )
 		{
@@ -179,7 +187,7 @@ implements
 
 		if ( this.audio.recordingChannelCount() === 0 )
 		{
-			this.encoder.stopEncoder()
+			this.encoder?.stopEncoder()
 
 			this.uploader.stopUploader()
 		}
@@ -210,7 +218,7 @@ implements
 
 		if ( this.audio.recordingChannelCount() === 0 )
 		{
-			this.encoder.stopEncoder()
+			this.encoder?.stopEncoder()
 
 			this.uploader.stopUploader()
 		}
