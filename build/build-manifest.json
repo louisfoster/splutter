@@ -1,11 +1,11 @@
 {
   "inputs": {
     "channel.js": {
-      "bytes": 2244,
+      "bytes": 2324,
       "imports": []
     },
     "audio.js": {
-      "bytes": 5050,
+      "bytes": 5108,
       "imports": [
         {
           "path": "channel.js"
@@ -48,7 +48,7 @@
       "imports": []
     },
     "splutter.js": {
-      "bytes": 3175,
+      "bytes": 3289,
       "imports": [
         {
           "path": "audio.js"
@@ -79,10 +79,10 @@
       ],
       "inputs": {
         "channel.js": {
-          "bytesInOutput": 1464
+          "bytesInOutput": 1530
         },
         "audio.js": {
-          "bytesInOutput": 3276
+          "bytesInOutput": 3289
         },
         "bufferManager.js": {
           "bytesInOutput": 313
@@ -106,10 +106,10 @@
           "bytesInOutput": 2339
         },
         "splutter.js": {
-          "bytesInOutput": 2068
+          "bytesInOutput": 2152
         }
       },
-      "bytes": 356384
+      "bytes": 356547
     }
   }
 }

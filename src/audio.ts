@@ -13,13 +13,13 @@ enum ConnectionState
 
 export class Audio
 {
-	private context: AudioContext
+	private context?: AudioContext
 
 	private source?: MediaStreamAudioSourceNode
 
 	private splitter?: ChannelSplitterNode
 
-	private merger: ChannelMergerNode
+	private merger?: ChannelMergerNode
 
 	private bufferSize: number
 
@@ -32,21 +32,6 @@ export class Audio
 		private channelStateListener: ChannelStateChangeListener
 	)
 	{
-		const _AudioContext: typeof AudioContext = window.AudioContext || window.webkitAudioContext
-	
-		this.context = new _AudioContext()
-	
-		// Some browsers initially suspend context, but if you
-		// resume in other browsers without suspending, you 
-		// get an error. This avoids that error.
-		this.context.suspend()
-
-		this.setDestinationChannels()
-
-		this.merger = this.context.createChannelMerger( this.context.destination.channelCount )
-
-		this.merger.connect( this.context.destination )
-
 		this.bufferSize = 16384
 
 		this.channels = []
@@ -56,6 +41,8 @@ export class Audio
 
 	private setDestinationChannels()
 	{
+		if ( !this.context ) return
+
 		if ( this.context.destination.maxChannelCount > this.context.destination.channelCount )
 		{
 			this.context.destination.channelCount = this.context.destination.maxChannelCount
@@ -89,7 +76,7 @@ export class Audio
 		{
 			if ( this.connections[ channel ][ o ] === ConnectionState.connected )
 			{
-				this.channels[ channel ].output.disconnect( this.merger, 0, o )
+				if ( this.merger ) this.channels[ channel ].output.disconnect( this.merger, 0, o )
 
 				this.connections[ channel ][ o ] = ConnectionState.notConnected
 			}
@@ -106,7 +93,7 @@ export class Audio
 		// check if channel has current output channels
 		if ( !this.connections[ channel ].some( output => output === ConnectionState.connected ) )
 		{
-			this.channels[ channel ].output.connect( this.merger, 0, 0 )
+			if ( this.merger ) this.channels[ channel ].output.connect( this.merger, 0, 0 )
 	
 			this.connections[ channel ][ 0 ] = ConnectionState.connected
 		}
@@ -130,33 +117,12 @@ export class Audio
 				.filter( v => v === ConnectionState.connected )
 				.length > 1 ) 
 		{
-			this.channels[ input ].output.disconnect( this.merger, 0, output )
+			if ( this.merger ) this.channels[ input ].output.disconnect( this.merger, 0, output )
 
 			this.connections[ input ][ output ] = ConnectionState.notConnected
 		}
-
-		/**
-		 * We are now filtering for connected items, this is kind of a weird hack,
-		 * if we aren't recording and nothing is connected, we can mute the channel
-		 * if we are recording, have 1 connection and that connection is the output channel,
-		 * we can also mute because of the above block condition
-		 * 
-		 * the splice is because we only need to check the single condition once, then
-		 * exit early, which is how it is done in a reduce fn
-		 */
-		if (  this.connections[ input ]
-			.filter( v => v === ConnectionState.connected )
-			.reduce( ( _, v, __, a ) => 
-			{
-				const x = ( this.channels[ input ].isRecording() && a.length === 1 && v === output ) || a.length === 0
-
-				a.splice( 1 )
-
-				return x
-			}, false ) )
-		{
-			this.channels[ input ].mute()
-		}
+			
+		this.channels[ input ].mute()
 	}
 	
 	// toggles output of channel
@@ -166,7 +132,7 @@ export class Audio
 
 		if ( this.connections[ input ][ output ] === ConnectionState.notConnected )
 		{	
-			this.channels[ input ].output.connect( this.merger, 0, output )
+			if ( this.merger ) this.channels[ input ].output.connect( this.merger, 0, output )
 
 			this.connections[ input ][ output ] = ConnectionState.connected
 		}
@@ -178,23 +144,28 @@ export class Audio
 		 */
 		if ( this.channels[ input ].isRecording() && this.channels[ input ].isMuted() ) 
 		{
-			for ( let o = 0; this.connections[ input ].length; o++ )
+			for ( let o = 0; o < this.connections[ input ].length; o++ )
 			{
 				if ( o !== output && this.connections[ input ][ o ] === ConnectionState.connected )
 				{
-					this.channels[ input ].output.disconnect( this.merger, 0, o )
+					if ( this.merger ) this.channels[ input ].output.disconnect( this.merger, 0, o )
 
 					this.connections[ input ][ o ] = ConnectionState.notConnected
 				}
 			}
+
 		}
 	
-		if ( this.channels[ input ].isMuted() ) this.channels[ input ].unmute()
+		if ( this.channels[ input ].isMuted() )
+		{
+			this.channels[ input ].unmute()
+		}
+
 	}
 
 	public sampleRate(): number
 	{
-		return this.context.sampleRate
+		return this.context?.sampleRate ?? 0
 	}
 
 	public processorBufferSize(): number
@@ -204,6 +175,24 @@ export class Audio
 
 	public resume(): void
 	{
+		if ( !this.context )
+		{
+			const _AudioContext: typeof AudioContext = window.AudioContext || window.webkitAudioContext
+	
+			this.context = new _AudioContext()
+		
+			// Some browsers initially suspend context, but if you
+			// resume in other browsers without suspending, you 
+			// get an error. This avoids that error.
+			this.context.suspend()
+
+			this.setDestinationChannels()
+
+			this.merger = this.context.createChannelMerger( this.context.destination.channelCount )
+
+			this.merger.connect( this.context.destination )
+		}
+
 		if ( this.context.state === `suspended` )
 		{
 			this.context.resume()
@@ -212,17 +201,17 @@ export class Audio
 
 	public async handleInputStream( stream: MediaStream ): Promise<number> 
 	{
-		this.source = this.context.createMediaStreamSource( stream )
+		this.source = this.context?.createMediaStreamSource( stream )
 
 		this.disconnectSplitter()
 
-		this.splitter = this.context.createChannelSplitter( this.source.channelCount )
+		this.splitter = this.context?.createChannelSplitter( this.source?.channelCount )
 
-		this.source.connect( this.splitter )
+		if ( this.splitter ) this.source?.connect( this.splitter )
 
-		for ( let channelIndex = 0; channelIndex < this.source.channelCount; channelIndex++ ) 
+		for ( let channelIndex = 0; channelIndex < ( this.source?.channelCount ?? 0 ); channelIndex++ ) 
 		{
-			if ( !this.channels[ channelIndex ] )
+			if ( !this.channels[ channelIndex ] && this.context )
 			{
 				this.channels[ channelIndex ] = new Channel(
 					channelIndex,
@@ -239,7 +228,7 @@ export class Audio
 				this.connections[ channelIndex ] = []
 			}
 
-			for ( let outputChannel = 0; outputChannel < this.context.destination.channelCount; outputChannel++ )
+			for ( let outputChannel = 0; outputChannel < ( this.context?.destination.channelCount ?? 0 ); outputChannel++ )
 			{
 				if ( this.connections[ channelIndex ][ outputChannel ] === undefined )
 				{
@@ -248,7 +237,7 @@ export class Audio
 			}
 		}
 
-		return this.source.channelCount
+		return this.source?.channelCount ?? 0
 	}
 
 	public stopAll(): void
@@ -263,7 +252,7 @@ export class Audio
 			}
 		}
 
-		this.context.suspend()
+		this.context?.suspend()
 	}
 
 	public inputChannelCount(): number
@@ -273,7 +262,7 @@ export class Audio
 
 	public outputChannelCount(): number
 	{
-		return this.context.destination.channelCount
+		return this.context?.destination.channelCount ?? 0
 	}
 
 	public recordingChannelCount(): number

@@ -34,6 +34,12 @@ export class Channel
 		bufferSize: number
 	)
 	{
+		this.processChunk = this.processChunk.bind( this )
+
+		this.mute = this.mute.bind( this )
+
+		this.unmute = this.unmute.bind( this )
+
 		this.state = ChannelState.connecting
 
 		this.input = context.createBiquadFilter()
@@ -49,8 +55,6 @@ export class Channel
 			1,
 			1
 		)
-
-		this.processChunk = this.processChunk.bind( this )
 
 		this.output.onaudioprocess = this.processChunk
 
