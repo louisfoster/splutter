@@ -5,6 +5,7 @@ import { SegmentBufferGeneratorErrorHandler } from "./segmentBufferGenerator";
 import { ChannelUploadStore, InternalPostUploadHandler, UploaderErrorHandler } from "./upload";
 export type { OnUploadedData } from './upload';
 export interface SplutterContextInterface extends DeviceWarningHandler, ChannelUploadStore, InternalPostUploadHandler, EncoderErrorHandler, UploaderErrorHandler, ChannelStateChangeListener {
+    onDevicePermissionRemoved: () => void;
     onWarning: (message: string | Error | ErrorEvent) => void;
     onFailure: (error: Error) => void;
 }
@@ -28,7 +29,7 @@ export declare class Splutter implements SegmentBufferGeneratorErrorHandler {
     constructor(context: SplutterContextInterface);
     private createBuffers;
     init(): void;
-    startCapture(): Promise<void>;
+    startCapture(): Promise<number>;
     stopCapture(): void;
     muteOutputChannelForInputChannel(input: number, output: number): void;
     unmuteOutputChannelForInputChannel(input: number, output: number): void;

@@ -4,6 +4,7 @@ class App {
     urls;
     channels;
     info;
+    captureButton;
     static init() {
         new App();
     }
@@ -13,7 +14,9 @@ class App {
         this._getDeviceInfo = this._getDeviceInfo.bind(this);
         this.handleStartCapture = this.handleStartCapture.bind(this);
         this.handleStopCapture = this.handleStopCapture.bind(this);
-        const [channels, info] = this.setUI();
+        this.captureButtonClick = this.captureButtonClick.bind(this);
+        const [channels, info, captureButton] = this.setUI();
+        this.captureButton = captureButton;
         this.channels = channels;
         this.info = info;
         this.handlePostUpload = false;
@@ -28,28 +31,33 @@ class App {
         return this.existsOrThrow(document.querySelector(selector), selector);
     }
     setUI() {
-        const captureBtn = this.getEl(`#capture`);
-        captureBtn.addEventListener(`click`, () => {
-            if (captureBtn.dataset.state === `inactive`) {
-                this.handleStartCapture();
-                captureBtn.dataset.state = `active`;
-                captureBtn.textContent = `Stop Capture`;
-            }
-            else {
-                this.handleStopCapture();
-                captureBtn.dataset.state = `inactive`;
-                captureBtn.textContent = `Start Capture`;
-            }
-        });
+        const captureButton = this.getEl(`#capture`);
+        captureButton.addEventListener(`click`, () => this.captureButtonClick());
         const channels = this.getEl(`#channels`);
         const info = this.getEl(`#info`);
-        return [channels, info];
+        return [channels, info, captureButton];
     }
     div() {
         return document.createElement(`div`);
     }
     btn() {
         return document.createElement(`button`);
+    }
+    captureButtonClick() {
+        if (this.captureButton.dataset.state === `inactive`) {
+            this.handleStartCapture()
+                .then(channels => {
+                if (channels) {
+                    this._getDeviceInfo();
+                    this.captureButton.dataset.state = `active`;
+                    this.captureButton.textContent = `Stop Capture`;
+                }
+            });
+        }
+        else {
+            this.handleStopCapture();
+            this.noCaptureUI();
+        }
     }
     createRecord(channel) {
         const channelButton = this.btn();
@@ -109,22 +117,21 @@ class App {
             this.channels.appendChild(ch);
         }
     }
-    _startCapture() {
+    async _startCapture() {
         if (!this.splutter) {
             throw Error(`Splutter library failed to load.`);
         }
-        this.splutter.startCapture()
-            .then(this._getDeviceInfo);
+        return this.splutter.startCapture();
     }
-    handleStartCapture() {
+    async handleStartCapture() {
         if (!this.splutter) {
-            import(`../build/splutter.js`).then(({ Splutter }) => {
+            return import(`../build/splutter.js`).then(({ Splutter }) => {
                 this.splutter = new Splutter(this);
-                this._startCapture();
+                return this._startCapture();
             });
         }
         else {
-            this._startCapture();
+            return this._startCapture();
         }
     }
     handleStopCapture() {
@@ -132,8 +139,15 @@ class App {
             throw Error(`Splutter library failed to load.`);
         }
         this.splutter.stopCapture();
+    }
+    noCaptureUI() {
+        this.captureButton.dataset.state = `inactive`;
+        this.captureButton.textContent = `Start Capture`;
         this.channels.innerHTML = ``;
         this.info.textContent = ``;
+    }
+    onDevicePermissionRemoved() {
+        this.noCaptureUI();
     }
     onWarning(message) {
         console.warn(message);

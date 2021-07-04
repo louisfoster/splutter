@@ -2,7 +2,7 @@
 
 ![Designs showing the lower half of the face in various physiognomies and actions.](https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Designs_showing_the_lower_half_of_the_face_in_various_physio_Wellcome_V0009408.jpg/302px-Designs_showing_the_lower_half_of_the_face_in_various_physio_Wellcome_V0009408.jpg)
 
-Record audio in compressed segments and stream them to a [sludge server](https://github.com/gaxge/sludge).
+Record audio in compressed segments and stream them to a [sludge server](https://github.com/drohen/sludge).
 
 ## Demo
 
@@ -28,13 +28,13 @@ This package implements one component of this modern technique for audio in the 
 
 ### Non-general
 
-[gaxge](https://github.com/gaxge) uses this component to receive audio from participants in the audio jamming platform. Keeping the process in the browser makes it easily accessible to people who can't or don't want to set up any additional software outside of the web application. It's difficult to set up a home server, and many live streaming tools don't really think too much about bandwidth, so hopefully this increases ease of use and decreases cost for the participant.
+[Rivalium](https://rivalium.com) uses this component to receive audio from participants in the audio jamming platform. Keeping the process in the browser makes it easily accessible to people who can't or don't want to set up any additional software outside of the web application. It's difficult to set up a home server, and many live streaming tools don't really think too much about bandwidth, so hopefully this increases ease of use and decreases cost for the participant.
 
 ## How does it do this?
 
 The Web Audio API is given access to the user's audio input, such as a microphone, which sends it to a Script Processor Node (soon, Audio Worklet Node). The chunks of raw audio data buffer are collected into 1 second chunks and encoded using the opus encoding format and ogg container format. As audio encoding is computationally intensive, the bulk of this process occurs in a Web Worker (soon, Audio Worklet) and the encoder is implemented using WASM. 
 
-When a segment is encoded, it is send to a provided URL, that is provided to the library by the context importing library. Generally, this endpoint should know how to appropriately handle these segments, see the [sludge server](https://github.com/gaxge/sludge). To listen to the audio stream, a decoding and playback tool can be used, see the [syllid library](https://github.com/gaxge/syllid). Audio can also be monitored during recording by requesting for the audio to be unmuted on a given output audio channel.
+When a segment is encoded, it is send to a provided URL, that is provided to the library by the context importing library. Generally, this endpoint should know how to appropriately handle these segments, see the [sludge server](https://github.com/drohen/sludge). To listen to the audio stream, a decoding and playback tool can be used, see the [syllid library](https://github.com/drohen/syllid). Audio can also be monitored during recording by requesting for the audio to be unmuted on a given output audio channel.
 
 ## How to use it?
 
@@ -59,6 +59,11 @@ class SomeInterfaceClass implements SplutterContextInterface
 {
 	// Indicates whether this context wants to handle data passed to the `onUploaded` method
 	public handlePostUpload: boolean
+
+	// Respond to when the user clears/blocks the permissions for the input device
+	// from the browser's native UI. Use this to update the context's UI.
+	// Audio recording stops on all input channels when this event occurs.
+	public onDevicePermissionRemoved: () => void
 
 	// Receive a warning from the underlying system, not catastrophic so this is mostly helpful
 	// for development and bug-catching purposes. Message is related to the warning event.
@@ -86,7 +91,7 @@ The Splutter class also exposes an API to allow your app to control the library 
 // On user interaction, such as clicking an "enable audio recording" button, call this function
 // to enable a prompt to get user permissions for audio input. Without these permissions,
 // the library can't record audio.
-startCapture(): Promise<void>
+startCapture(): Promise<number>
 
 // This deactivates the underlying audio input stream, so the input device is no longer
 // displayed as "active" to the user. You will need to call startCapture() again.
@@ -124,14 +129,14 @@ inputDeviceInformation(): DeviceInformation
 
 ### How to handle the encoded files?
 
-[sludge server](https://github.com/gaxge/sludge): To handle the files as they are uploaded to a server, such that other people can download and listen to them.
+[sludge server](https://github.com/drohen/sludge): To handle the files as they are uploaded to a server, such that other people can download and listen to them.
 
-[syllid library](https://github.com/gaxge/syllid): To download the files from sludge, decode and listen to them.
+[syllid library](https://github.com/drohen/syllid): To download the files from sludge, decode and listen to them.
 
 
 ## What are the upcoming features or known issues?
 
-This information is managed in the [issues](https://github.com/gaxge/splutter/issues) section of this repository. You are encouraged to submit tickets here if you have any problems or questions related to this project.
+This information is managed in the [issues](https://github.com/drohen/splutter/issues) section of this repository. You are encouraged to submit tickets here if you have any problems or questions related to this project.
 
 ## How to contribute?
 
@@ -144,4 +149,4 @@ There's no official guidelines for contributing at the moment. Feel free to crea
 
 ## What's the license?
 
-See the [license](https://github.com/gaxge/splutter/blob/master/LICENSE.md) file.
+See the [license](https://github.com/drohen/splutter/blob/master/LICENSE.md) file.

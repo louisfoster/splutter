@@ -1,3 +1,6 @@
+export interface DeviceHandler {
+    onPermissionsRemoved: () => void;
+}
 export interface DeviceWarningHandler {
     onWarning: (message: string) => void;
 }
@@ -13,6 +16,7 @@ export declare enum DeviceError {
  * TODO: check device change event
  */
 export declare class Device {
+    private handler;
     private warn;
     private error;
     private errorType;
@@ -20,12 +24,14 @@ export declare class Device {
     private mediaTrack?;
     private deviceId;
     private deviceLabel;
-    constructor(warn: DeviceWarningHandler);
+    private deviceCheckInterval;
+    constructor(handler: DeviceHandler, warn: DeviceWarningHandler);
     /**
      * This is an extracted part of the public stop fn in
      * case an internal stop mechanism is created
      */
     private _stop;
+    private pollDevices;
     checkDevices(): void;
     hasError(): string;
     getErrorMessage(): string;

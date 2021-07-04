@@ -12,6 +12,8 @@ class App implements SplutterContextInterface
 
 	private info: HTMLPreElement
 
+	private captureButton: HTMLButtonElement
+
 	public static init()
 	{
 		new App()
@@ -29,7 +31,11 @@ class App implements SplutterContextInterface
 
 		this.handleStopCapture = this.handleStopCapture.bind( this )
 
-		const [ channels, info ] = this.setUI()
+		this.captureButtonClick = this.captureButtonClick.bind( this )
+
+		const [ channels, info, captureButton ] = this.setUI()
+
+		this.captureButton = captureButton
 
 		this.channels = channels
 
@@ -53,35 +59,17 @@ class App implements SplutterContextInterface
 		return this.existsOrThrow( document.querySelector( selector ), selector )
 	}
 
-	private setUI(): [HTMLDivElement, HTMLPreElement]
+	private setUI(): [HTMLDivElement, HTMLPreElement, HTMLButtonElement]
 	{
-		const captureBtn = this.getEl<HTMLButtonElement>( `#capture` )
+		const captureButton = this.getEl<HTMLButtonElement>( `#capture` )
 
-		captureBtn.addEventListener( `click`, () =>
-		{
-			if ( captureBtn.dataset.state === `inactive` )
-			{
-				this.handleStartCapture()
-
-				captureBtn.dataset.state = `active`
-
-				captureBtn.textContent = `Stop Capture`
-			}
-			else
-			{
-				this.handleStopCapture()
-
-				captureBtn.dataset.state = `inactive`
-
-				captureBtn.textContent = `Start Capture`
-			}
-		} )
+		captureButton.addEventListener( `click`, () => this.captureButtonClick() )
 
 		const channels = this.getEl<HTMLDivElement>( `#channels` )
 
 		const info = this.getEl<HTMLPreElement>( `#info` )
 
-		return [ channels, info ]
+		return [ channels, info, captureButton ]
 	}
 
 	private div(): HTMLDivElement
@@ -92,6 +80,31 @@ class App implements SplutterContextInterface
 	private btn(): HTMLButtonElement
 	{
 		return document.createElement( `button` )
+	}
+
+	private captureButtonClick()
+	{
+		if ( this.captureButton.dataset.state === `inactive` )
+		{
+			this.handleStartCapture()
+				.then( channels =>
+				{
+					if ( channels )
+					{
+						this._getDeviceInfo()
+
+						this.captureButton.dataset.state = `active`
+
+						this.captureButton.textContent = `Stop Capture`
+					}
+				} )
+		}
+		else
+		{
+			this.handleStopCapture()
+
+			this.noCaptureUI()
+		}
 	}
 
 	private createRecord( channel: number )
@@ -194,31 +207,30 @@ class App implements SplutterContextInterface
 		}
 	}
 
-	private _startCapture()
+	private async _startCapture()
 	{
 		if ( !this.splutter )
 		{
 			throw Error( `Splutter library failed to load.` )
 		}
 
-		this.splutter.startCapture()
-			.then( this._getDeviceInfo )
+		return this.splutter.startCapture()
 	}
 
-	private handleStartCapture()
+	private async handleStartCapture()
 	{
 		if ( !this.splutter )
 		{
-			import( `../build/splutter.js` ).then( ( { Splutter } ) =>
+			return import( `../build/splutter.js` ).then( ( { Splutter } ) =>
 			{
 				this.splutter = new Splutter( this )
 
-				this._startCapture()
+				return this._startCapture()
 			} )
 		}
 		else
 		{
-			this._startCapture()
+			return this._startCapture()
 		}
 	}
 
@@ -230,10 +242,22 @@ class App implements SplutterContextInterface
 		}
 
 		this.splutter.stopCapture()
+	}
+
+	private noCaptureUI()
+	{
+		this.captureButton.dataset.state = `inactive`
+
+		this.captureButton.textContent = `Start Capture`
 
 		this.channels.innerHTML = ``
 
 		this.info.textContent = ``
+	}
+
+	public onDevicePermissionRemoved(): void
+	{
+		this.noCaptureUI()
 	}
 
 	public onWarning( message: string | Error | ErrorEvent ): void
