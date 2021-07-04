@@ -17,7 +17,7 @@
       "imports": []
     },
     "device.js": {
-      "bytes": 2693,
+      "bytes": 3230,
       "imports": []
     },
     "__snowpack__/env.js": {
@@ -48,7 +48,7 @@
       "imports": []
     },
     "splutter.js": {
-      "bytes": 3289,
+      "bytes": 3579,
       "imports": [
         {
           "path": "audio.js"
@@ -88,7 +88,7 @@
           "bytesInOutput": 313
         },
         "device.js": {
-          "bytesInOutput": 1660
+          "bytesInOutput": 1993
         },
         "__snowpack__/env.js": {
           "bytesInOutput": 50
@@ -106,10 +106,10 @@
           "bytesInOutput": 2339
         },
         "splutter.js": {
-          "bytesInOutput": 2152
+          "bytesInOutput": 2340
         }
       },
-      "bytes": 356547
+      "bytes": 357068
     }
   }
 }

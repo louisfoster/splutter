@@ -1,3 +1,8 @@
+export interface DeviceHandler
+{
+	onPermissionsRemoved: () => void
+}
+
 export interface DeviceWarningHandler
 {
 	onWarning: ( message: string ) => void
@@ -38,7 +43,10 @@ export class Device
 
 	private deviceLabel: string
 
+	private deviceCheckInterval: number
+
 	constructor(
+		private handler: DeviceHandler,
 		private warn: DeviceWarningHandler
 	)
 	{
@@ -51,6 +59,8 @@ export class Device
 		this.deviceId = ``
 
 		this.deviceLabel = ``
+
+		this.deviceCheckInterval = 0
 
 		this.checkDevices()
 	}
@@ -75,6 +85,26 @@ export class Device
 	
 			this.errorType = DeviceError.stopped
 		}
+	}
+
+	private pollDevices()
+	{
+		navigator.mediaDevices.enumerateDevices()
+			.then( devices =>
+			{
+				const deviceAvailable = devices.find( device =>
+					device.deviceId === this.deviceId )
+
+				if ( !deviceAvailable || !deviceAvailable.label )
+				{
+					this.handler.onPermissionsRemoved()
+				}
+				else
+				{
+					this.deviceCheckInterval = window.setTimeout( () =>
+						this.pollDevices(), 500 )
+				}
+			} )
 	}
 
 	public checkDevices(): void
@@ -110,6 +140,8 @@ export class Device
 
 	public stop(): void
 	{
+		clearTimeout( this.deviceCheckInterval )
+		
 		this._stop()
 
 		this.error = `Device was stopped by the user`
@@ -166,6 +198,8 @@ export class Device
 				this.deviceLabel = this.mediaTrack.label
 
 				this.deviceId = this.mediaTrack.getSettings().deviceId || `no_id`
+
+				this.pollDevices()
 				
 				return stream
 			} )

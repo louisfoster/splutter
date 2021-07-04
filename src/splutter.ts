@@ -17,6 +17,8 @@ extends
 	UploaderErrorHandler,
 	ChannelStateChangeListener
 {
+	onDevicePermissionRemoved: () => void
+
 	onWarning: ( message: string | Error | ErrorEvent ) => void
 
 	onFailure: ( error: Error ) => void
@@ -52,7 +54,14 @@ implements
 		private context: SplutterContextInterface
 	)
 	{
-		this.device = new Device( this.context )
+		this.device = new Device( {
+			onPermissionsRemoved: () =>
+			{
+				this.stopCapture()
+
+				this.context.onDevicePermissionRemoved()
+			}
+		}, this.context )
 
 		this.bufferManager = new BufferManager()
 
@@ -105,13 +114,15 @@ implements
 			this.encoder = new Encoder( this.uploader, this.context, this.audio.sampleRate() )
 	}
 
-	public async startCapture(): Promise<void> 
+	public async startCapture(): Promise<number> 
 	{
 		this.init()
 
 		switch ( this.device.hasError() )
 		{
 			case DeviceError.stopped:
+				
+			case DeviceError.notGranted:
 
 				this.device.tryReload()
 
@@ -125,23 +136,30 @@ implements
 
 				this.context.onWarning( this.device.hasError() )
 
-				return
+				return 0
 		}
 
-		return this.device.requestDeviceAccess()
-			.then( stream =>
-			{
-				if ( !stream )
-				{
-					// TODO: handle error
-					this.context.onWarning( `No stream available` )
+		const stream = await this.device.requestDeviceAccess()
 
-					return 0
-				}
+		if ( !stream )
+		{
+			this.context.onWarning( `No stream available` )
 
-				return this.audio.handleInputStream( stream )
-			} )
-			.then( this.createBuffers )
+			return 0
+		}
+
+		const channels = await this.audio.handleInputStream( stream )
+		
+		if ( !channels )
+		{
+			this.context.onWarning( `No channels available` )
+
+			return 0
+		}
+
+		this.createBuffers( channels )
+
+		return channels
 	}
 
 	public stopCapture(): void
