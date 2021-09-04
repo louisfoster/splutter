@@ -67,7 +67,7 @@ implements
 
 		this.audio = new Audio( this.bufferManager, this.context )
 
-		this.uploader = new Uploader( this.context, this.context, this.context, 3000 )
+		this.uploader = new Uploader( this.context, this.context, this.context, 10000 )
 
 		this.createBuffers = this.createBuffers.bind( this )
 

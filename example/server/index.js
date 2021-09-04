@@ -15,6 +15,8 @@ makeIfNotExists( baseDir )
 
 makeIfNotExists( exampleDir )
 
+let count = 0
+
 var storage = multer.diskStorage( {
 	destination: (req, file, cb) =>
 	{
@@ -22,7 +24,9 @@ var storage = multer.diskStorage( {
 	},
 	filename: (req, file, cb) => 
 	{
-		const fileName = `${file.fieldname}-${Date.now()}.opus`  
+		count++
+
+		const fileName = `${count.toString().padStart(7, `0`)}.opus`  
 
 		console.log("Saving file", fileName)
 

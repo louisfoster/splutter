@@ -27,6 +27,8 @@ export declare class SegmentBufferGenerator {
     private hang;
     private hangLength;
     private bufferIndex;
+    private bufferPad;
+    private hasPad;
     /**
      * SegmentBufferGenerator builds types arrays of 1 second size relative
      * to the sample rate (samples per second) of the audio context.

@@ -79,6 +79,10 @@ export class SegmentBufferGenerator
 	// to use when in segment generator
 	private bufferIndex: number
 
+	private bufferPad: Float32Array
+
+	private hasPad: boolean
+
 	/**
 	 * SegmentBufferGenerator builds types arrays of 1 second size relative
 	 * to the sample rate (samples per second) of the audio context.
@@ -109,7 +113,7 @@ export class SegmentBufferGenerator
 		bufferSize: number,
 	)
 	{
-		this.subBufferCount = Math.ceil( sampleRate / bufferSize )
+		this.subBufferCount = Math.ceil( ( sampleRate * 1.08 ) / bufferSize )
 
 		this.queue = Array( this.subBufferCount * 30 ).fill( undefined ).map( () => new Float32Array( bufferSize ) )
 
@@ -124,6 +128,10 @@ export class SegmentBufferGenerator
 		this.hang = new Float32Array( bufferSize )
 
 		this.hangLength = 0
+
+		this.bufferPad = new Float32Array( sampleRate * 0.08 )
+
+		this.hasPad = false
 
 		this.bufferIndex = 0
 
@@ -172,6 +180,15 @@ export class SegmentBufferGenerator
 		// buffer == [--------------------------------------]
 		// index ==   ^
 
+
+		if ( this.hasPad )
+		{
+			this.segmentHandler.buffers[ this.bufferRef ].buffer.set( this.bufferPad, this.bufferIndex )
+
+			this.bufferIndex += this.bufferPad.length
+		}
+
+
 		/**
 		 * Set current buffer initially to use any left over 
 		 * data from previous buffer generation
@@ -183,10 +200,10 @@ export class SegmentBufferGenerator
 			// Although we set the whole buffer to hang, the hanglength
 			// being used to set the buffer index ensures only what is
 			// relevant is actually used
-			this.segmentHandler.buffers[ this.bufferRef ].buffer.set( this.hang, 0 )
+			this.segmentHandler.buffers[ this.bufferRef ].buffer.set( this.hang, this.bufferIndex )
 
 			// Index in current buffer now at end of hang length
-			this.bufferIndex = this.hangLength
+			this.bufferIndex += this.hangLength
 
 			// set hang to empty for re-use
 			this.hangLength = 0
@@ -210,7 +227,7 @@ export class SegmentBufferGenerator
 				// index ==                                            ^
 			}
 
-			// ensure buffer doesn't overflow (ie put remainer in hanging)
+			// ensure buffer doesn't overflow (ie put remainder in hanging)
 			const remainder: number = this.segmentHandler.buffers[ this.bufferRef ].buffer.length - this.bufferIndex
 
 			const hanging: boolean = remainder < this.queue[ this.queueIndex ].length
@@ -254,6 +271,15 @@ export class SegmentBufferGenerator
 				this.queueIndex = -1
 			}
 		}
+
+		this.bufferIndex = 0
+
+		this.bufferPad.set( this.segmentHandler.buffers[ this.bufferRef ].buffer.subarray(
+			this.segmentHandler.buffers[ this.bufferRef ].buffer.length
+				- this.bufferPad.length
+		) )
+
+		// console.log( this.segmentHandler.buffers[ this.bufferRef ].buffer )
 
 		// Something may have changed state while in loop
 		if ( this.state !== BufferingState.buffering ) return

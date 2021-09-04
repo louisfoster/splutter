@@ -29,7 +29,7 @@
       "imports": []
     },
     "encode.js": {
-      "bytes": 5008,
+      "bytes": 5043,
       "imports": [
         {
           "path": "__snowpack__/env.js"
@@ -40,7 +40,7 @@
       ]
     },
     "segmentBufferGenerator.js": {
-      "bytes": 3870,
+      "bytes": 4344,
       "imports": []
     },
     "upload.js": {
@@ -97,10 +97,10 @@
           "bytesInOutput": 339299
         },
         "encode.js": {
-          "bytesInOutput": 3226
+          "bytesInOutput": 3251
         },
         "segmentBufferGenerator.js": {
-          "bytesInOutput": 2658
+          "bytesInOutput": 3056
         },
         "upload.js": {
           "bytesInOutput": 2339
@@ -109,7 +109,7 @@
           "bytesInOutput": 2340
         }
       },
-      "bytes": 357068
+      "bytes": 357491
     }
   }
 }
