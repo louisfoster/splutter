@@ -138,21 +138,16 @@ export class Encoder implements SegmentHandler
 		this.encodeWorker.postMessage( 
 			{
 				command: `init`,
-				// minimum sample rate for good audio
 				encoderSampleRate: 48000,
 				originalSampleRate: this.sampleRate,
 				// the higher the less overhead
-				// maxFramesPerPage: 480,
 				// music optimisation
 				encoderApplication: 2049,
 				encoderFrameSize: 20,
-				// faster
 				encoderComplexity: 10,
-				// faster
 				resampleQuality: 10,
-				// lowest bitrate for decent audio
 				bitRate: 64000,
-				maxFramesPerPage: 40, // Tradeoff latency with overhead
+				maxFramesPerPage: 40,
 				numberOfChannels: 1,
 			} )
 	}
